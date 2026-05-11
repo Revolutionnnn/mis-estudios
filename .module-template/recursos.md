@@ -1,12 +1,14 @@
 # Recursos — Título del módulo
 
+Lista curada de lecturas y materiales para quien quiera profundizar más allá de este módulo.
+
 ## Libros
 
 ### Título del libro
 - **Tipo**: libro
 - **Autor**: Nombre del autor
 - **Enlace**: URL (o dónde conseguirlo)
-- **Descripción**: Por qué es relevante y qué aporta al módulo.
+- **Descripción**: Qué vas a encontrar en este libro que no está en el módulo. Sé específico.
 
 ## Artículos
 
@@ -14,7 +16,7 @@
 - **Tipo**: artículo
 - **Autor**: Nombre del autor
 - **Enlace**: URL
-- **Descripción**: Por qué es relevante y qué aporta al módulo.
+- **Descripción**: Qué vas a encontrar en este artículo que no está en el módulo. Sé específico.
 
 ## Videos
 
@@ -22,8 +24,7 @@
 - **Tipo**: video
 - **Autor**: Nombre del creador / canal
 - **Enlace**: URL
-- **Duración**: HH:MM:SS (aprox.)
-- **Descripción**: Por qué es relevante y qué aporta al módulo.
+- **Descripción**: Qué vas a encontrar en este video que no está en el módulo. Sé específico.
 
 ## Cursos
 
@@ -32,11 +33,11 @@
 - **Plataforma**: Nombre de la plataforma
 - **Autor**: Nombre del instructor
 - **Enlace**: URL
-- **Descripción**: Por qué es relevante y qué aporta al módulo.
+- **Descripción**: Qué vas a encontrar en este curso que no está en el módulo.
 
 ## Herramientas
 
 ### Nombre de la herramienta
 - **Tipo**: herramienta
 - **Enlace**: URL
-- **Descripción**: Qué hace y cómo apoya el estudio del módulo.
+- **Descripción**: Qué hace y cómo apoya el conocimiento de este tema.

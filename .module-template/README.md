@@ -7,18 +7,15 @@
 | Estado | pendiente |
 | Dificultad | principiante |
 
-## Objetivos de aprendizaje
-- Objetivo principal 1
-- Objetivo principal 2
-- Objetivo principal 3
+## ¿Qué voy a aprender?
+- Idea central explicada en una frase (sin jerga)
+- Idea central 2
+- Idea central 3
 
 ## Prerrequisitos
-- Conocimiento previo necesario para abordar este módulo
-- Conceptos que deberías manejar antes de empezar
+- Lo mínimo indispensable para entender este módulo
 
-## Roadmap
-1. Introducción y contexto
-2. Conceptos fundamentales
-3. Profundización
-4. Aplicación práctica
-5. Repaso y autoevaluación
+## Mapa de lectura
+1. Historia y contexto: de dónde viene y por qué existe
+2. Conceptos fundamentales: cómo funciona en esencia
+3. Aplicaciones y casos reales: cómo se usa en el mundo

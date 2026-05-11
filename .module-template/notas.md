@@ -1,35 +1,33 @@
 # Notas — Título del módulo
 
-## Introducción
+## ¿De dónde viene esto?
 
-[Contexto general del tema, por qué es importante, cómo se relaciona con otros temas.]
+[Origen, quién lo creó, qué problema resolvía originalmente, contexto de la época.]
 
-## Conceptos clave
+## ¿Cómo funciona en esencia?
+
+[Explicación conceptual desde cero, como si se lo contaras a alguien inteligente pero sin contexto previo. Usar analogías, diagramas ASCII y ejemplos concretos.]
+
+```
++---------------+     +---------------+
+|   Idea A      |---->|   Idea B      |
++---------------+     +---------------+
+```
+
+## Conceptos que hay que entender
 
 ### Concepto 1
-- **Definición**: [Definición clara y concisa]
-- **Analogía**: [Una analogía que ayude a entenderlo]
-- **Relación con**: [Cómo se conecta con otros conceptos]
+[Explicación con analogía, ejemplo concreto, comparación con conceptos similares en otros campos.]
 
 ### Concepto 2
-- **Definición**: [Definición clara y concisa]
-- **Analogía**: [Una analogía que ayude a entenderlo]
-- **Relación con**: [Cómo se conecta con otros conceptos]
+[Explicación con analogía, ejemplo concreto, comparación con conceptos similares en otros campos.]
 
-## Profundización
+## Curiosidades y cosas que sorprenden
 
-[Sección para contenido más detallado, ejemplos concretos, casos de uso.]
+[Datos poco conocidos, hechos que cambian la perspectiva, cosas que no están en la documentación oficial.]
 
-## Diagramas
+## Resumen: lo que no deberías olvidar
 
-[Diagramas en ASCII o referencias a herramientas como Excalidraw, Mermaid, etc.]
-
-```
-+---------------+     +---------------+
-|   Concepto A  |---->|   Concepto B  |
-+---------------+     +---------------+
-```
-
-## Resumen
-
-[Ideas principales que no deben olvidarse, en 3-5 bullet points.]
+- Idea fuerza 1
+- Idea fuerza 2
+- Idea fuerza 3

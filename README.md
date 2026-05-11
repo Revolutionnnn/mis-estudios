@@ -1,6 +1,15 @@
 # mis-notas
 
-Base de conocimiento personal — un lugar para organizar, estudiar y documentar temas de interés usando inteligencia artificial como asistente.
+Una biblioteca personal de conocimiento — diseñada para **leer, aprender y convertirse en experto** en temas de interés. Cada módulo es una lectura autosuficiente que combina explicaciones, historia, casos reales e inspiración para crear.
+
+**No es un repositorio de ejercicios.** Es una colección de conocimiento narrado para leer, disfrutar y entender profundamente.
+
+## Filosofía
+
+Cada módulo responde tres preguntas:
+1. **¿Qué es y cómo funciona?** — Conceptos explicados con claridad y analogías.
+2. **¿Por qué existe y qué historias hay detrás?** — Origen, evolución, decisiones de diseño.
+3. **¿Qué puedo crear o entender gracias a esto?** — Aplicaciones reales, ideas, conexiones.
 
 ## Estructura
 
@@ -9,12 +18,13 @@ mis-notas/
 ├── README.md              # Este archivo
 ├── AGENTS.md              # Instrucciones para asistentes IA
 ├── .gitignore
-├── .module-template/      # Plantilla para nuevos módulos de estudio
-│   ├── README.md
-│   ├── recursos.md
-│   ├── notas.md
-│   └── ejercicios.md
+├── .module-template/      # Plantilla para nuevos módulos
+│   ├── README.md          #   Metadatos, ¿qué voy a aprender?, mapa de lectura
+│   ├── recursos.md        #   Lecturas complementarias curadas
+│   ├── notas.md           #   El conocimiento: conceptos, historia, narrativa
+│   └── profundizar.md     #   Casos de estudio, historias, ideas para crear
 ├── programacion/
+│   └── lua/               # Módulo de ejemplo
 ├── filosofia/
 ├── matematicas/
 ├── ciencia/
@@ -23,9 +33,9 @@ mis-notas/
 └── otros/
 ```
 
-Cada **tema** es una carpeta. Dentro de cada tema hay **módulos de estudio** (subcarpetas), cada uno con la estructura de `.module-template/`.
+Cada **tema** es una carpeta. Dentro hay **módulos** (subcarpetas) con 4 archivos.
 
-## Cómo crear un nuevo módulo de estudio
+## Cómo crear un nuevo módulo
 
 ### Con IA (recomendado)
 
@@ -33,11 +43,7 @@ Decile a tu asistente IA algo como:
 
 > "Creá un módulo de estudio sobre [tema] en la carpeta [tema]"
 
-La IA seguirá las instrucciones de `AGENTS.md` para generar:
-- `README.md` con objetivos, prerrequisitos y estructura
-- `recursos.md` con libros, artículos, videos y cursos curados
-- `notas.md` con apuntes y conceptos clave
-- `ejercicios.md` con preguntas de reflexión o práctica
+La IA lee `AGENTS.md` y genera los 4 archivos con contenido de lectura enriquecido.
 
 ### Manual
 
@@ -45,18 +51,16 @@ La IA seguirá las instrucciones de `AGENTS.md` para generar:
 cp -r .module-template tema/nombre-del-modulo
 ```
 
-Luego editá cada archivo.
-
 ## Nomenclatura
 
-- **Carpetas de temas**: una palabra, minúsculas, en español (ej. `programacion`, `filosofia`)
-- **Módulos**: kebab-case descriptivo (ej. `algoritmos-ordenamiento`, `estoicismo`)
+- **Temas**: una palabra, minúsculas, en español (`programacion`, `filosofia`)
+- **Módulos**: kebab-case descriptivo (`algoritmos-ordenamiento`, `estoicismo`)
 - **Archivos**: minúsculas, con guiones si es necesario
 
 ## Convenciones
 
 - Todo el contenido en **español**
-- Formato **Markdown**
-- Usar `tags` en los frontmatter o al inicio de cada archivo para facilitar búsquedas
-- Mantener los recursos con enlaces funcionales y breve descripción de por qué son relevantes
-- Fecha de creación y última actualización en cada módulo
+- Formato **Markdown** (compatible con Obsidian y cualquier editor)
+- **Sin ejercicios ni autoevaluaciones** — aprendizaje mediante lectura y reflexión
+- Tags para facilitar búsquedas (`#fundamentos`, `#historico`, `#crear`, `#lectura`)
+- Recursos con enlaces funcionales y descripción de qué aporta cada uno

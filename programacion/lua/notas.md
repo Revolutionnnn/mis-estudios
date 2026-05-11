@@ -1,302 +1,194 @@
 # Notas — Lua
 
-## Introducción
+## El origen: tres brasileños, una petrolera y un lenguaje que no debió existir
 
-Lua (portugués para "luna") es un lenguaje de scripting creado en 1993 en la PUC-Rio (Brasil) por Roberto Ierusalimschy, Waldemar Celes y Luiz Henrique de Figueiredo. Fue diseñado desde cero para ser **embebido** en aplicaciones escritas en C/C++, aunque también funciona perfectamente como lenguaje standalone.
+Corre 1993. En la PUC-Rio de Brasil, el profesor Roberto Ierusalimschy y sus colegas Waldemar Celes y Luiz Henrique de Figueiredo tienen un problema. Petrobras, la petrolera estatal brasileña, les había encargado programas de simulación geológica. Los ingenieros necesitaban poder modificar parámetros de simulación sin recompilar todo el programa en Fortran. Necesitaban un lenguaje de configuración... pero uno que también pudiera expresar lógica.
 
-Filosofía de diseño:
-- **Mecanismos en lugar de políticas**: Lua provee pocas herramientas poderosas pero flexibles, y deja que el programador decida cómo combinarlas.
-- **Portabilidad extrema**: Lua corre en cualquier plataforma con un compilador ANSI C. Desde microcontroladores hasta servidores.
-- **Pequeño y rápido**: El intérprete completo pesa ~300 KB. LuaJIT es uno de los compiladores JIT más rápidos que existen.
+En esa época, Tcl era la opción dominante para scripting embebido. Pero tenía un problema serio: su sintaxis era extraña, su modelo de datos era pobre (todo era string) y no escalaba bien. Los brasileños probaron Tcl y dijeron: "podemos hacer algo mejor".
 
----
+Así nació SOL (Simple Object Language), el ancestro directo de Lua. SOL introdujo la idea de que UN solo tipo de dato compuesto (las tablas) podía reemplazar arrays, diccionarios, objetos y hasta módulos. SOL evolucionó a Lua —"luna" en portugués, en referencia a SOL, el "sol" anterior— y la primera versión pública salió en 1994.
 
-## Tipos de datos
-
-Lua tiene 8 tipos básicos. Es un lenguaje **dinámicamente tipado**.
-
-| Tipo | Descripción | Ejemplo |
-|------|-------------|---------|
-| `nil` | Ausencia de valor (el único valor falsy además de `false`) | `nil` |
-| `boolean` | Verdadero o falso | `true`, `false` |
-| `number` | Números de punto flotante (doble precisión) | `3.14`, `42`, `1e-3` |
-| `string` | Cadenas inmutables, pueden usar `'`, `"` o `[[ ]]` | `"hola"`, `[[multilínea]]` |
-| `function` | Funciones como ciudadanos de primera clase | `function() end` |
-| `table` | La única estructura de datos compuesta (arrays, diccionarios, objetos) | `{1, 2, 3}`, `{a=1}` |
-| `thread` | Representa una corutina | |
-| `userdata` | Datos arbitrarios de C, opacos para Lua | |
-
-### Detalles importantes sobre tipos
-
-- **Todo es verdadero excepto `false` y `nil`**: `0` y `""` son truthy, a diferencia de Python o JS.
-- **No hay enteros nativos en Lua < 5.3**: A partir de Lua 5.3 se introducen subtipos `integer` y `float` dentro de `number`.
-- **Las strings son inmutables**: Cualquier operación crea una nueva string. Lua las interna, por lo que comparar strings con `==` es O(1).
-- **No hay arrays nativos**: Las tablas con índices numéricos consecutivos empezando desde 1 actúan como arrays.
+Pero lo que realmente disparó la adopción de Lua no fue Petrobras. Fue un artículo en la revista Dr. Dobb's Journal en 1996, luego una portada en Game Developer Magazine, y sobre todo... World of Warcraft.
 
 ---
 
-## Variables y scoping
+## La filosofía del "menos es más"
 
-```lua
--- Variables globales por defecto (cuidado)
-x = 10          -- global
+Lua tiene 8 tipos de datos. Python tiene docenas. JavaScript tiene 7 pero con comportamientos complejos. La librería estándar de Lua cabe en un puñado de funciones. ¿Cómo hace tanto con tan poco?
 
--- Variables locales (usar siempre que sea posible)
-local y = 20    -- local
+La respuesta está en su principio fundacional: **mecanismos en lugar de políticas**.
 
--- Declaración múltiple
-local a, b = 1, 2
+Traducción: en lugar de darte 50 características especializadas, Lua te da 5 herramientas increíblemente flexibles y te deja combinarlas como quieras.
 
--- Bloques do-end para crear nuevo scope
-do
-  local privada = "no visible afuera"
-end
+Un ejemplo concreto: las **tablas**. En Python necesitás listas, diccionarios, sets, objetos, módulos y namedtuples. En Lua necesitás UNA sola cosa: una tabla. Todas esas estructuras se implementan con tablas.
+
+```
+Tabla como array:            {10, 20, 30, 40}
+Tabla como diccionario:       {nombre="Ana", edad=30}
+Tabla como objeto:            {x=10, y=20, mover=function()...end}
+Tabla como módulo:            {func1=..., func2=...}
+Tabla como conjunto (set):    {[elemento]=true, [otro]=true}
 ```
 
-**Regla de oro**: Siempre usar `local`. Las globales son más lentas y propensas a colisiones.
+Esto no es un truco ni una limitación. Es una decisión deliberada de diseño que hace que el lenguaje entero quepa en tu cabeza.
+
+Pero la verdadera magia no son las tablas. Son las **metatables**.
 
 ---
 
-## Tablas: la navaja suiza
+## Metatables: cuando tus datos tienen superpoderes
 
-La tabla es la **única estructura de datos compuesta** en Lua. Se usa para todo.
+Imaginá que tenés una tabla común y corriente. Ahora imaginá que podés decirle: "cuando alguien intente sumar esta tabla con otra, ejecutá esta función". O: "cuando alguien busque una clave que no existe, en lugar de devolver nil, buscá en esta otra tabla". Eso son las metatables.
 
-### Como array (base 1)
 ```lua
-local nums = {10, 20, 30, 40}
-print(nums[1])    --> 10
-print(#nums)      --> 4  (longitud)
+local vector = {x = 3, y = 4}
+-- Normalmente vector + vector daría error
+-- Pero con una metatable...
 
--- Iterar
-for i = 1, #nums do
-  print(nums[i])
-end
-```
-
-### Como diccionario
-```lua
-local persona = {
-  nombre = "Ana",
-  edad = 30,
+local mt = {
+  __add = function(a, b)
+    return {x = a.x + b.x, y = a.y + b.y}
+  end
 }
-
-print(persona.nombre)        --> "Ana"
-print(persona["nombre"])     --> "Ana"  (equivalente)
-
--- Agregar campos dinámicos
-persona.ciudad = "Bogotá"
+setmetatable(vector, mt)
 ```
 
-### Azúcar sintáctico para funciones
-```lua
-local obj = {}
+Las metatables son lo que permite que Lua tenga "orientación a objetos" sin tener clases. Son lo que permite que puedas sobrecargar operadores. Son el secreto de la flexibilidad de Lua.
 
-function obj:saludar()
-  print("hola " .. self.nombre)
-end
-
--- Equivale a:
--- obj.saludar = function(self)
---   print("hola " .. self.nombre)
--- end
-```
+Para que se entienda: en la mayoría de lenguajes, los operadores como `+` están definidos por el compilador y no los podés cambiar. En C++ podés sobrecargarlos pero solo dentro de clases. En Lua, cualquier tabla puede tener cualquier comportamiento. Es como si los objetos de JavaScript tuvieran `Proxy` incorporado por defecto, pero sin la complejidad.
 
 ---
 
-## Funciones y closures
+## Las corutinas: concurrencia sin hilos
 
-Las funciones son **ciudadanas de primera clase**: se pueden asignar a variables, pasar como argumentos y retornar de otras funciones.
+Otra joya del diseño de Lua. Las corutinas permiten tener múltiples "hilos" de ejecución que cooperan entre sí, cediendo el control voluntariamente. No son threads del sistema operativo: todo corre en un solo hilo.
+
+¿Para qué sirve esto? Imaginá un videojuego con 100 NPCs. Cada NPC tiene su propia "rutina": caminar hasta un punto, esperar 3 segundos, decir algo, caminar a otro lado. Sin corutinas necesitás máquinas de estado complejas con temporizadores. Con corutinas, cada NPC es una función lineal:
 
 ```lua
--- Función como valor
-local sumar = function(a, b)
-  return a + b
-end
-
--- Azúcar sintáctico
-local function sumar(a, b)
-  return a + b
+function comportamientoNPC()
+  while true do
+    caminarHacia(puntoA)
+    esperar(3)         -- yield interno
+    decir("Hola")
+    caminarHacia(puntoB)
+    esperar(5)
+  end
 end
 ```
 
-### Closures
+El scheduler del juego va rotando entre corutinas, ejecutando un poquito de cada una. El código se lee como si fuera secuencial, pero en realidad es cooperativo. Esto es lo que usan los juegos en Lua para manejar comportamientos complejos sin volverse locos con callbacks.
 
-Un closure es una función que captura variables de su entorno léxico.
+---
+
+## ¿Dónde está Lua escondido?
+
+Lua es probablemente el lenguaje más usado que menos gente conoce por nombre. Está en:
+
+### Videojuegos (su fortaleza histórica)
+- **World of Warcraft**: Toda la UI y los addons están en Lua. La comunidad de addons de WoW es una de las más grandes del mundo y entera programa en Lua.
+- **Roblox**: Usa Luau, un dialecto de Lua con tipos graduales. Millones de juegos creados por usuarios, todos en Luau.
+- **Angry Birds** (versiones originales): Hecho con Corona SDK (Lua).
+- **Baldur's Gate 3, Factorio, Civilization VI, Don't Starve**: Todos usan Lua para scripting de juego.
+- **LÖVE2D**: Framework para juegos indie 2D. Juegos como "Move or Die" se hicieron con esto.
+
+### Editores y herramientas
+- **Neovim**: La gran migración de Vimscript a Lua. Hoy todo el ecosistema de plugins de Neovim está en Lua. La promesa: misma velocidad de Vim, pero con un lenguaje real.
+- **Wireshark**: Los plugins para diseccionar protocolos de red se escriben en Lua.
+- **Adobe Lightroom**: Los plugins son en Lua.
+- **MPV**: Reproductor de video. Su sistema de scripting de UI es Lua.
+- **Redis**: Lua scripting para operaciones atómicas complejas en el servidor.
+- **Nginx / OpenResty**: Lua metido dentro del servidor web para lógica de alto rendimiento.
+
+### Sistemas embebidos
+- **NodeMCU**: Firmware para ESP8266/ESP32 que se programa en Lua. Imaginate programar un microcontrolador WiFi con scripts de Lua en lugar de C.
+- **AwesomeWM**: Window manager para Linux configurado completamente en Lua.
+
+---
+
+## El código de Lua: fragmentos reveladores
+
+No son tutoriales paso a paso. Son fragmentos que muestran la esencia del lenguaje.
+
+### Los índices empiezan en 1 (por un motivo histórico)
 
 ```lua
-function crearContador()
-  local n = 0
-  return function()
-    n = n + 1
-    return n
+local t = {"lunes", "martes", "miércoles"}
+print(t[1])  --> "lunes"  (no "martes")
+```
+
+Esto escandaliza a programadores de C/Java/Python. ¿Por qué 1 y no 0? La respuesta no es técnica: es humana. Lua fue diseñado para ingenieros de Petrobras que no eran programadores. Para un no-programador, contar desde 1 es natural. Y como Lua no es un subset de C, no tiene por qué seguir sus convenciones.
+
+Curiosamente, internamente los arrays de Lua SÍ empiezan en 0. `t[0]` es perfectamente válido. Solo que el operador `#` y las funciones de la librería estándar ignoran el índice 0.
+
+### Funciones que devuelven funciones (closures elegantes)
+
+```lua
+function saludar(saludo)
+  return function(nombre)
+    return saludo .. ", " .. nombre
   end
 end
 
-local c1 = crearContador()
-print(c1())  --> 1
-print(c1())  --> 2
+local hola = saludar("Hola")
+local bonjour = saludar("Bonjour")
+
+print(hola("Ana"))     --> Hola, Ana
+print(bonjour("Ana"))  --> Bonjour, Ana
 ```
 
-Los closures son la base de la encapsulación en Lua. No hay clases nativas; se usan closures o metatables.
+Esto es un closure: `saludo` queda "capturado" en la función retornada. En lenguajes como Java necesitás una clase entera para esto. En Lua es una línea. Este patrón es la base de cómo Lua implementa encapsulación sin clases.
 
----
-
-## Metatables y metaprogramación
-
-Cada tabla y userdata puede tener asociada una **metatable** que define su comportamiento ante ciertas operaciones.
-
-### Metamétodos más comunes
-
-| Metamétodo | Operación |
-|-----------|-----------|
-| `__add` | `a + b` |
-| `__sub` | `a - b` |
-| `__mul` | `a * b` |
-| `__index` | `tabla.clave` cuando la clave no existe |
-| `__newindex` | `tabla.clave = valor` cuando la clave no existe |
-| `__call` | Llamar como función: `tabla()` |
-| `__tostring` | `tostring(tabla)` |
-| `__len` | `#tabla` |
-| `__eq` | `a == b` |
-
-### Programación orientada a prototipos
-
-Lua no tiene clases. La OOP se implementa con metatables:
+### Herencia simple con metatables
 
 ```lua
--- "Clase" Animal
+-- Definimos un "prototipo"
 local Animal = {}
-Animal.__index = Animal
-
 function Animal:nuevo(nombre)
-  local instancia = { nombre = nombre }
-  setmetatable(instancia, self)
-  return instancia
+  return setmetatable({nombre = nombre}, {__index = self})
 end
-
 function Animal:hablar()
-  print(self.nombre .. " hace un sonido")
+  print(self.nombre .. " hace ruido")
 end
 
--- "Subclase" Perro
-local Perro = Animal:nuevo()
-Perro.__index = Perro
-
+-- "Herencia": otro prototipo que delega en Animal
+local Perro = Animal:nuevo("Perro")
 function Perro:hablar()
   print(self.nombre .. " ladra")
 end
 
-local perro = Perro:nuevo("Firulais")
-perro:hablar()  --> Firulais ladra
+local fido = Perro:nuevo("Fido")
+fido:hablar()  --> Fido ladra
 ```
+
+No hay clases. No hay `extends`. Solo prototipos y delegación vía `__index`. Es como JavaScript antes de ES6, pero más limpio.
 
 ---
 
-## Corutinas
+## Comparación: Lua al lado de sus pares
 
-Las corutinas permiten **cooperar múltiples hilos de ejecución** dentro de un solo hilo OS. No son threads: son concurrentes pero no paralelas.
+### Lua vs Python
+Ambos son dinámicos e interpretados. Pero:
+- **Python** es una navaja suiza con 200 herramientas. **Lua** es un bisturí.
+- Python tiene su propio ecosistema (Django, NumPy, etc.). Lua vive DENTRO de otros programas.
+- Python es pesado para embeber (~30 MB). Lua pesa ~300 KB.
+- La librería estándar de Python tiene módulos para todo. La de Lua es minimalista a propósito: cuando Lua está embebido, la aplicación host provee las funciones.
 
-```lua
-local co = coroutine.create(function()
-  for i = 1, 3 do
-    print("corutina", i)
-    coroutine.yield()  -- cede el control
-  end
-end)
+### Lua vs JavaScript
+Comparten origen en los 90s y herencia prototipal. Pero:
+- JavaScript evolucionó en la guerra de navegadores (con prisas). Lua evolucionó en un laboratorio académico (con calma).
+- JavaScript tiene `this`, `prototype`, `class`, `new`, `bind`, `call`, `apply` — un zoológico. Lua tiene metatables y `:`.
+- El estándar de JavaScript (ECMAScript) mide miles de páginas. El manual de Referencia de Lua mide ~100.
 
-coroutine.resume(co)  --> corutina 1
-coroutine.resume(co)  --> corutina 2
-coroutine.resume(co)  --> corutina 3
-coroutine.resume(co)  --> true (terminó)
-```
-
-Se usan para:
-- Simular hilos en motores de juego (cada NPC en su corutina)
-- Máquinas de estado sin callbacks anidados
-- Pausar y reanudar ejecución de lógica compleja
+### Lua vs Lisp
+Son parientes espirituales. Ambos creen en "mecanismos, no políticas". Ambos tienen pocas primitivas y el resto emerge. Pero Lua cambió los paréntesis por `end` e hizo que las tablas (no las listas) sean el tipo central.
 
 ---
 
-## Módulos y paquetes
+## Resumen: lo que no deberías olvidar
 
-```lua
--- mi_modulo.lua
-local M = {}
-
-function M.saludar(nombre)
-  return "Hola " .. nombre
-end
-
-return M
-
--- main.lua
-local mi_modulo = require("mi_modulo")
-print(mi_modulo.saludar("mundo"))
-```
-
-LuaRocks es el gestor de paquetes estándar:
-```bash
-luarocks install luasocket
-luarocks install lpeg
-```
-
----
-
-## Ámbitos de uso de Lua
-
-### Videojuegos
-Lua es el rey indiscutido del scripting en videojuegos. Motores y juegos que lo usan:
-- **Roblox**: Millones de juegos programados en Luau (dialecto de Lua)
-- **World of Warcraft**: UI y addons en Lua
-- **LÖVE2D**: Framework para juegos 2D totalmente en Lua
-- **Baldur's Gate 3, Factorio, Don't Starve, Civilization**: Motores internos con Lua
-- **Unity/Unreal**: Plugins y bindings disponibles (MoonSharp, UnLua)
-
-### Sistemas embebidos y firmware
-- **NodeMCU**: firmware para ESP8266/ESP32 en Lua
-- **Redis**: Lua scripting para operaciones atómicas en el servidor
-- **Nginx/OpenResty**: Lua para lógica web en el servidor HTTP
-
-### Herramientas y editores
-- **Neovim**: Configuración y plugins en Lua (gran migración desde Vimscript)
-- **Wireshark**: Plugins de disección de protocolos
-- **Adobe Lightroom**: Plugins en Lua
-- **MPV**: Reproductor de video, scripting de UI en Lua
-
-### Programación de sistemas
-- **LuaJIT**: Uno de los compiladores JIT más rápidos, con FFI para llamar directamente a C
-- **AwesomeWM**: Window manager para Linux configurado completamente en Lua
-
----
-
-## Conceptos clave del ecosistema Lua moderno
-
-### LuaJIT
-Compilador JIT compatible con Lua 5.1, con extensiones propias. Su FFI (Foreign Function Interface) permite llamar funciones y estructuras de C directamente, sin bindings complejos:
-
-```lua
-local ffi = require("ffi")
-ffi.cdef[[
-  int printf(const char *fmt, ...);
-]]
-ffi.C.printf("Hola %s\n", "desde C")
-```
-
-### Luau
-Dialecto de Lua creado por Roblox con:
-- Tipado gradual (`type` opcional)
-- Análisis estático integrado
-- Sintaxis de tipos anotados: `function sum(a: number, b: number): number`
-
-### Teal
-Lenguaje que compila a Lua añadiendo tipos estáticos al estilo TypeScript. `módulo.tl` → `módulo.lua`.
-
----
-
-## Resumen
-
-- Lua es minimalista por diseño: un puñado de tipos y las tablas como navaja suiza.
-- Las funciones son ciudadanas de primera clase y los closures permiten encapsulación sin clases.
-- Las metatables dan control total sobre el comportamiento de tablas, incluyendo OOP.
-- Se usa en videojuegos, sistemas embebidos, editores y como lenguaje de scripting/glue.
-- LuaJIT es un superpoder: rendimiento cercano a C con la flexibilidad de un lenguaje dinámico.
+- Lua nació en Brasil en 1993 para que ingenieros de Petrobras pudieran configurar simulaciones sin recompilar Fortran. Hoy está en WoW, Neovim, Redis y Marte (literalmente: la NASA lo usó en simulaciones del rover Spirit).
+- Su secreto es dar pocas herramientas pero increíblemente flexibles: tablas, metatables y corutinas. Con eso construís lo que quieras.
+- No compite con Python o JavaScript como lenguaje standalone. Compite como lenguaje embebido: vive DENTRO de otras aplicaciones.
+- LuaJIT es uno de los compiladores JIT más rápidos jamás escritos, y su FFI permite llamar a C sin bindings — algo casi mágico en un lenguaje dinámico.
+- Si alguna vez usaste un addon de WoW, configuraste Neovim, escribiste un script de Redis o jugaste un juego de Roblox, ya programaste en Lua sin saberlo.
