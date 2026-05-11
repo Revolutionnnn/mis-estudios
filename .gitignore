@@ -1,0 +1,17 @@
+# Archivos temporales
+*.tmp
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Dependencias
+node_modules/
+
+# Configuración personal (no compartir)
+.env
+.env.local
+
+# Backup
+*.bak
+*.backup
